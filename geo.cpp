@@ -1,7 +1,7 @@
-
+// testowane wszystkimi zadaniami z tego contestu https://codeforces.com/gym/100168
 const LD eps = 1e-9;
 
-typedef long long D;
+typedef long double D;
 const LD PI = acos(-1);
 
 struct point
@@ -170,5 +170,37 @@ LD halfseg_halfseg_dist(point a, point b, point c, point d)
   point e = inter(line(a, b), line(c, d));
   if(point_halfline_dist(e, a, b) < eps && point_halfline_dist(e, c, d) < eps)
     return (LD) 0.0;
+  return res;
+}
+
+// zwraca czy punkty a i b leza po tej samej stronie prostej c
+bool points_line_same_side(point a, point b, line c)
+{
+  point d = c.punkty().fi;
+  point e = c.punkty().se;
+  int jed = wyzznak(d, e, a);
+  int dwa = wyzznak(d, e, b);
+  if(jed != dwa)
+    return 0;
+  else
+    return 1;
+}
+
+// zwraca prosta postaci A x + B y + C = 0 przechodzaca przez punkt c
+line line_through_point(D A, D B, point c)
+{
+  return line(A, B, -A * c.x - B * c.y);
+}
+
+// zwraca rownanie dwusiecznej kata b a c
+line bisector(point a, point b, point c)
+{
+  line jed(a, b);
+  line dwa(a, c);
+  LD sq = sqrt(jed.A * jed.A + jed.B * jed.B);
+  LD sq2 = sqrt(dwa.A * dwa.A + dwa.B * dwa.B);
+  line res(jed.A / sq - dwa.A / sq2, jed.B / sq - dwa.B / sq2, jed.C / sq - dwa.C / sq2);
+  if(points_line_same_side(b, c, res))
+    return line_through_point(-res.B, res.A, a);
   return res;
 }
