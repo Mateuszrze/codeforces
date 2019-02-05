@@ -3,6 +3,7 @@
 // add_edge dodaje przekatna wielokata
 // PROGRAM ZAKLADA ZE PRZEKATNE SIE NIE PRZECINAJA  ( nie moga sie przecinac - wtedy nie istnieje podzial)
 // funkcja rob() zwraca wektor pól kazde z pol jest opisane przez wszystkie wierzcholki danego pola (wielokata)
+// kazdy wielakat skladowy ma wierzcholki podane w kolejnosci rosnacej
 
 struct podzial
 {
@@ -34,7 +35,6 @@ struct podzial
         cur.pb(cnt.fi);
         usun(cnt);
       }
-      reverse(all(cur));
       pola.pb(cur);
     }
     return pola;
