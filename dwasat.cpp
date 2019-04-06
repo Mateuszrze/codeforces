@@ -1,10 +1,11 @@
-
 // zmienne sa od 1 do n, negacja to + n
 // rob() zwraca 0 jak nie ma rozwiazania oraz 1 gdy jest rozwiazanie
 // po uruchomieniu rob() w wektorze val beda wartosci -1 i 1 oznaczajace wartosci logiczne zmiennych
 // ludzie[i] to wierzcholki znajdujace sie w i-tej spojnej skladowej
-// skl[i] to numer skladowej w ktorej jest wierzcholek numer i 
-
+// skl[i] to numer skladowej w ktorej jest wierzcholek numer i
+// cofnij() cofa ostatnio dodana klauzule
+// mozna puszczac ile razy sie chce (tzn. puscic, potem dodac/usunac pare kawedzi i potem znowu puscic)
+// init(int N) inicjalizuje, 1, 2, ... n to zmienne, n + 1, n + 2, ... 2n to ich negacje
 struct dwasat
 {
   int n;
@@ -13,8 +14,9 @@ struct dwasat
   vector<int> V, skl;
   vector<int> st;
   int num = 0;
+  VPII ost;
 
-  dwasat(int N)
+  void init(int N)
   {
     n = N;
     wek.resize(2 * n + 4);
@@ -32,12 +34,22 @@ struct dwasat
     }
   }
 
+  void cofnij()
+  {
+    wek[ost.back().fi].pop_back();
+    wek[ost.back().se].pop_back();
+    odw[para[ost.back().fi]].pop_back();
+    odw[para[ost.back().se]].pop_back();
+    ost.pop_back();
+  }
+
   void dodaj(int a, int b) // dodajesz a lub b
   {
     wek[para[a]].pb(b);
     wek[para[b]].pb(a);
     odw[b].pb(para[a]);
     odw[a].pb(para[b]);
+    ost.pb({para[a], para[b]});
   }
 
   void dfs(int x)
