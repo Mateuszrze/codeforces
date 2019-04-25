@@ -1,5 +1,6 @@
+
 // potpot powinno miec podstawy
-// modmod powinno miec modula 
+// modmod powinno miec modula
 // po odpaleniu pierwszy raz pot i mod sie wylosuja
 
 struct hasze
@@ -23,7 +24,7 @@ struct hasze
             return b;
       }
 
-      hasze(string S)
+      void go(string S)
       {
       	srand((LL) new int);
       	if(mod == 0)
