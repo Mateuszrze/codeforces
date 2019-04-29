@@ -1,4 +1,4 @@
-testowane na https://codeforces.com/contest/914/problem/F
+//testowane na https://codeforces.com/contest/914/problem/F
 
 /*
  * Autor programu: Marek Cygan
