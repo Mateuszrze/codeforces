@@ -1,0 +1,16 @@
+
+void minkowski(vector<point> a, vector<point> b)
+{
+ 
+      int wsk = 0;
+      int wsk2 = 0;
+      all.pb(a[wsk] + b[wsk]);
+      while(wsk + 1 < SZ(a) || wsk2 + 1 < SZ(b))
+      {
+            if(wsk2 + 1 < SZ(b) && (wsk + 1 == SZ(a) || wyzznak({0, 0}, a[wsk + 1] - a[wsk], b[wsk2 + 1] - b[wsk2]) < 0))
+                  wsk2++;
+            else
+                  wsk++;
+            all.pb(a[wsk] + b[wsk2]);
+      }
+}
