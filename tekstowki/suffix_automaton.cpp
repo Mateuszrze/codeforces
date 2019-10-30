@@ -1,19 +1,23 @@
-
-// testowane na https://www.spoj.com/problems/SUBLEX/
+// testowane na
+// https://www.spoj.com/problems/STRMATCH/
+// https://open.kattis.com/problems/stringmultimatching
+// https://www.spoj.com/problems/SUBLEX/
 // https://pl.spoj.com/problems/KMP/
+// https://www.codechef.com/problems/SUBQUERY
 // http://solve.edu.pl/tasks/view/83
-// pos_occ nie jestem pewien zlozonosci mozliwe ze zadziala w O(dlugosc slowa)
 
-
-struct Suffix_Automaton
+struct SAM
 {
-  struct state
+  struct state // mozna usunac wszystko oprocz link, len oraz next
   {
     bool terminal = 0; // whether a node is terminal
     int ter_sum = -1; // number of terminal nodes we have path to
     LL paths = -1LL; // number of paths starting at this node
-    int len, link;
+    int first_pos = 0; // position of first occurence in the word (position of the last letter)
+    int len; // dlugosc najdluzszgo slowa w wierzcholku
+    int link; // suflinka
     map<char, int> next;
+    VI rev_link; // sons in link tree
   };
 
   vector<state> st;
@@ -21,46 +25,83 @@ struct Suffix_Automaton
 
   void init()
   {
+    st.clear();
     st.pb(state());
     st[0].len = 0;
     st[0].link = -1;
+    st[0].first_pos = -1;
     sz = 1;
     last = 0;
   }
 
-  Suffix_Automaton()
+  int len(int a)
+  {
+    if(a == -1) return -1;
+    return st[a].len;
+  }
+
+  void run(string s)
   {
     init();
+    for(auto v : s)
+      sa_extend(v);
+    int cur = last;
+    while(cur != 0)
+    {
+      st[cur].terminal = 1;
+      cur = st[cur].link;
+    }
+    // mozna wykomentowac, jezeli jest za wolne (ale to i tak dziala w O(n))
+    for(int i = 0;i < SZ(st);i++)
+    {
+      if(st[i].link >= 0)
+        st[st[i].link].rev_link.pb(i);
+      Ter_sum(i);
+      Paths(i);
+    }
+  }
+
+  SAM(){}
+  SAM(string s)
+  {
+    run(s);
   }
 
   void sa_extend(char c)
   {
-    while(last + 2 >= SZ(st))
-      st.pb(state());
+    st.pb(state());
     int cur = sz++;
     st[cur].len = st[last].len + 1;
+    st[cur].first_pos = st[last].first_pos + 1;
     int p = last;
-    while (p != -1 && !st[p].next.count(c)) {
+    while(p != -1 && !st[p].next.count(c))
+    {
         st[p].next[c] = cur;
         p = st[p].link;
     }
-    if (p == -1) {
+    if(p == -1)
+    {
         st[cur].link = 0;
-    } else {
-        int q = st[p].next[c];
-        if (st[p].len + 1 == st[q].len) {
-            st[cur].link = q;
-        } else {
-            int clone = sz++;
-            st[clone].len = st[p].len + 1;
-            st[clone].next = st[q].next;
-            st[clone].link = st[q].link;
-            while (p != -1 && st[p].next[c] == q) {
-                st[p].next[c] = clone;
-                p = st[p].link;
-            }
-            st[q].link = st[cur].link = clone;
+        last = cur;
+        return;
+    }
+    int q = st[p].next[c];
+    if(st[p].len + 1 == st[q].len)
+        st[cur].link = q;
+    else
+    {
+        int clone = sz++;
+        st.pb(state());
+        st[clone].len = st[p].len + 1;
+        st[clone].first_pos = st[q].first_pos;
+        st[clone].next = st[q].next;
+        st[clone].link = st[q].link;
+        while (p != -1 && st[p].next[c] == q)
+        {
+            st[p].next[c] = clone;
+            p = st[p].link;
         }
+        st[q].link = st[cur].link = clone;
     }
     last = cur;
   }
@@ -110,55 +151,49 @@ struct Suffix_Automaton
       }
     }
   }
-
-  void run(string s)
+  // returns the position of a string in automaton
+  int position(string s)
   {
-    clear();
-    st.resize(SZ(s) * 2 + 1);
+    int cur = 0;
     for(auto v : s)
-      sa_extend(v);
-    int cur = last;
-    while(cur != 0)
-    {
-      st[cur].terminal = 1;
-      cur = st[cur].link;
-    }
+      if(!st[cur].next.count(v))
+        return -1;
+      else
+        cur = st[cur].next[v];
+    return cur;
   }
+
+  int first_occ(string s)
+  {
+    int cur = position(s);
+    if(cur == -1) return -1;
+    return st[cur].first_pos - SZ(s) + 1;
+  }
+
   // returns number of occurences of s in string
   int occ(string s)
   {
-    int cur = 0;
-    for(auto v : s)
-      if(!st[cur].next.count(v))
-        return 0;
-      else
-        cur = st[cur].next[v];
+    int cur = position(s);
+    if(cur == -1) return 0;
     return Ter_sum(cur);
   }
-  // returns vector with positions where s starts to occur (1-indexed)
+  // returns vector with positions where s starts to occur (1-indexed), complexity O(answer)
   VI pos_occ(string s)
   {
-    int cur = 0;
-    for(auto v : s)
-      if(!st[cur].next.count(v))
-        return {};
-      else
-        cur = st[cur].next[v];
+    int cur = position(s);
+    if(cur == -1) return {};
     VI V;
-    queue<PII> q;
-    q.push({cur, SZ(s)});
+    queue<int> q;
+    q.push(cur);
     while(SZ(q))
     {
-      PII a = q.front();
+      int a = q.front();
       q.pop();
-      if(st[a.fi].terminal)
-        V.pb(st[last].len - a.se);
-      for(auto v : st[a.fi].next)
-        if(Ter_sum(v.se) > 0)
-          q.push({v.se, a.se + 1});
+      V.pb(st[a].first_pos - SZ(s) + 1);
+      for(auto v : st[a].rev_link)
+        q.push(v);
     }
-    reverse(all(V));
-    assert(SZ(V) == occ(s));
+    erase_duplicates(V);
     return V;
   }
 
@@ -166,12 +201,6 @@ struct Suffix_Automaton
   LL distinct()
   {
     return Paths(0) - 1;
-  }
-
-  void clear()
-  {
-    st.clear();
-    init();
   }
 
 };
